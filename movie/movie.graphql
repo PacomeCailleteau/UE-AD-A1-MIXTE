@@ -2,6 +2,8 @@ type Query {
     movies: [Movie]
     movie_by_id(_id: String!): Movie
     movies_by_director(_director: String!): [Movie]
+    sort_movies_by_rating(order: String!): [Movie]
+    get_help: String
 }
 
 type Mutation {
