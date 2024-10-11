@@ -1,0 +1,23 @@
+syntax = "proto3";
+import "to_import.proto";
+
+service Booking {
+  rpc GetBookingByUserID(BookingID) returns (BookingData) {}
+  rpc GetListBookings(Empty) returns (stream BookingData) {}
+  rpc AddBookingToUser(AddBookingInputData) returns (BookingData) {}
+}
+
+message BookingID {
+  string userid = 1;
+}
+
+message BookingData {
+  string userid = 1;
+  repeated ShowtimeData dates = 2;
+}
+
+message AddBookingInputData {
+  string userid = 1;
+  string date = 2;
+  string movie = 3;
+}
