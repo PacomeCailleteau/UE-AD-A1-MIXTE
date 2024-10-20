@@ -1,12 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Aide</title>
-    </head>
-    <body>
-        <h1>Bienvenue dans le service de films</h1>
-        <pre>{{ help_info }}</pre>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aide API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: blue;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+        ul {
+            list-style-type: none; /* Supprime les puces */
+            padding-left: 0; /* Supprime le padding par défaut */
+        }
+        li {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        li ul {
+            margin-top: 5px; /* Ajoute un peu d'espace au-dessus des sous-listes */
+            padding-left: 20px; /* Indentation des sous-listes */
+        }
+        .argument {
+            font-style: italic;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+<h1>Aide API</h1>
+
+<h2>Queries</h2>
+<ul>
+    {% for query in help_info.Queries %}
+        <li>{{ "/"+query.name }}
+            {% if query.arguments %}
+                <ul>
+                    {% for arg in query.arguments %}
+                        <li class="argument">{{ arg.name }} (Type: {{ arg.type }})</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <ul>
+                    <li class="argument">No argument</li>
+                </ul>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+<h2>Mutations</h2>
+<ul>
+    {% for mutation in help_info.Mutations %}
+        <li>{{ mutation.name }}
+            <ul>
+                {% for arg in mutation.arguments %}
+                    <li class="argument">{{ arg.name }} (Type: {{ arg.type }})</li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+</ul>
+</body>
 </html>

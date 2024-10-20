@@ -71,8 +71,31 @@ def movies():
 
 @app.route('/help', methods=['GET'])
 def help_page():
-    help_info = r.get_help(None, None)
-    return render_template('help.html', help_info=help_info)
+    help_query = '''
+    query {
+        get_help {
+            Queries {
+                name
+                arguments {
+                    name
+                    type
+                }
+            }
+            Mutations {
+                name
+                arguments {
+                    name
+                    type
+                }
+            }
+        }
+    }
+    '''
+    response = requests.post('http://127.0.0.1:3001/graphql', json={'query': help_query})
+    help_data = response.json().get('data', {}).get('get_help', {})
+
+    return render_template('help.html', help_info=help_data)
+
 
 if __name__ == "__main__":
     print("Server running in port %s" % (PORT))

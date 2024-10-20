@@ -3,7 +3,27 @@ type Query {
     movie_by_id(_id: String!): Movie
     movies_by_director(_director: String!): [Movie]
     sort_movies_by_rating(order: String!): [Movie]
-    get_help: String
+    get_help: Help!
+}
+
+type Help {
+    Queries: [QueryInfo!]
+    Mutations: [MutationInfo!]
+}
+
+type QueryInfo {
+    name: String
+    arguments: [ArgumentInfo!]
+}
+
+type MutationInfo {
+    name: String
+    arguments: [ArgumentInfo!]
+}
+
+type ArgumentInfo {
+    name: String
+    type: String
 }
 
 type Mutation {

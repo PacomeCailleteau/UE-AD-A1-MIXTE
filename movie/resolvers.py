@@ -1,7 +1,5 @@
 import json
-
-from graphql.type import schema
-
+from graphql import GraphQLObjectType
 
 def get_movie_data():
     with open('{}/data/movies.json'.format("."), "r") as file:
@@ -64,3 +62,42 @@ def sort_movies_by_rating(_, info, order):
 
     sorted_movies = sorted(movies['movies'], key=lambda movie: movie['rating'], reverse=(order == 'best'))
     return sorted_movies
+
+def get_help(_, info):
+    help_info = {
+        'Queries': [],
+        'Mutations': []
+    }
+
+    for field_name, field in info.schema.query_type.fields.items():
+
+        query_info = {
+            'name': field_name,
+            'arguments': []
+        }
+
+        if field.args:
+            for arg_name, arg in field.args.items():
+                query_info['arguments'].append({
+                    'name': arg_name,
+                    'type': str(arg.type)
+                })
+
+        help_info['Queries'].append(query_info)
+
+    if info.schema.mutation_type:
+        for field_name, field in info.schema.mutation_type.fields.items():
+            mutation_info = {
+                'name': field_name,
+                'arguments': []
+            }
+            if field.args:
+                for arg_name, arg in field.args.items():
+                    mutation_info['arguments'].append({
+                        'name': arg_name,
+                        'type': str(arg.type)
+                    })
+
+            help_info['Mutations'].append(mutation_info)
+
+    return help_info
