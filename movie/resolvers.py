@@ -101,3 +101,22 @@ def get_help(_, info):
             help_info['Mutations'].append(mutation_info)
 
     return help_info
+
+def delete_movie(_, info, _id):
+    movies = get_movie_data()
+    movie_to_delete = None
+
+    for movie in movies['movies']:
+        if movie['id'] == _id:
+            movie_to_delete = movie
+            break
+
+    if not movie_to_delete:
+        raise ValueError(f"Aucun film trouvé avec l'ID: {_id}")
+
+    movies['movies'].remove(movie_to_delete)
+
+    with open('{}/data/movies.json'.format("."), "w") as wfile:
+        json.dump(movies, wfile, indent=2)
+
+    return f"Film avec l'ID {_id} supprimé avec succès."

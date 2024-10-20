@@ -29,6 +29,7 @@ type ArgumentInfo {
 type Mutation {
     create_movie(_id: String!, _title: String!, _director: String!, _rating: Float!): Movie
     update_movie_rate(_id: String!, _rate: Float!): Movie
+    delete_movie(_id: String!): String
 }
 
 type Movie {

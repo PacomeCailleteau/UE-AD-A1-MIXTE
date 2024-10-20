@@ -21,6 +21,8 @@ query.set_field('get_help', r.get_help)
 mutation = MutationType()
 mutation.set_field('update_movie_rate', r.update_movie_rate_ez)
 mutation.set_field("create_movie", r.create_movie)
+mutation.set_field("delete_movie", r.delete_movie)
+
 
 actor = ObjectType('Actor')
 movie.set_field('actors', r.resolve_actors_in_movie)
