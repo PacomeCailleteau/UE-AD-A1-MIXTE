@@ -1,12 +1,12 @@
+import requests
 from ariadne import graphql_sync, make_executable_schema, load_schema_from_path, ObjectType, QueryType, MutationType
 from flask import Flask, request, jsonify, make_response, render_template
-import requests
+
 import resolvers as r
 
 PORT = 3001
 HOST = '0.0.0.0'
 app = Flask(__name__)
-
 
 # Elements for Ariadne
 type_defs = load_schema_from_path('movie.graphql')
@@ -19,10 +19,9 @@ query.set_field('sort_movies_by_rating', r.sort_movies_by_rating)
 query.set_field('get_help', r.get_help)
 
 mutation = MutationType()
-mutation.set_field('update_movie_rate', r.update_movie_rate_ez)
+mutation.set_field('update_movie_rate', r.update_movie_rate)
 mutation.set_field("create_movie", r.create_movie)
 mutation.set_field("delete_movie", r.delete_movie)
-
 
 actor = ObjectType('Actor')
 movie.set_field('actors', r.resolve_actors_in_movie)
@@ -49,6 +48,7 @@ def graphql_server():
     status_code = 200 if success else 400
     return jsonify(result), status_code
 
+
 @app.route('/movies', methods=['GET'])
 def movies():
     query_movies = '''
@@ -70,6 +70,7 @@ def movies():
     movies_data = response.json().get('data', {}).get('movies', [])
 
     return render_template('movies.html', movies=movies_data)
+
 
 @app.route('/help', methods=['GET'])
 def help_page():

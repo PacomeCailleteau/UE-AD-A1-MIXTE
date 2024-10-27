@@ -7,16 +7,11 @@ type Query {
 }
 
 type Help {
-    Queries: [QueryInfo!]
-    Mutations: [MutationInfo!]
+    Queries: [HelpInfo!]
+    Mutations: [HelpInfo!]
 }
 
-type QueryInfo {
-    name: String
-    arguments: [ArgumentInfo!]
-}
-
-type MutationInfo {
+type HelpInfo {
     name: String
     arguments: [ArgumentInfo!]
 }
