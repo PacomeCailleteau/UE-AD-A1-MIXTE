@@ -1,0 +1,11 @@
+syntax = "proto3";
+import "to_import.proto";
+
+service Showtime {
+  rpc GetShowtimeByDate(ShowtimeDate) returns (ShowtimeData) {}
+  rpc GetListShowtimes(Empty) returns (stream ShowtimeData) {}
+}
+
+message ShowtimeDate {
+  string date = 1;
+}
