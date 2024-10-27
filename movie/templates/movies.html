@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des films</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: blue;
+        }
+
+        .movie {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .actor {
+            font-style: italic;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Liste des films</h1>
+{% if movies %}
+    {% for movie in movies %}
+        <div class="movie">
+            <h2>{{ movie.title }}</h2>
+            <p><strong>Directeur:</strong> {{ movie.director }}</p>
+            <p><strong>Note:</strong> {{ movie.rating }}</p>
+            <h3>Acteurs:</h3>
+            <ul>
+                {% if movie.actors %}
+                    {% for actor in movie.actors %}
+                        <li class="actor">{{ actor.firstname }} {{ actor.lastname }} ({{ actor.birthyear }})</li>
+                    {% endfor %}
+                {% else %}
+                    <li>Aucun acteur disponible</li>
+                {% endif %}
+            </ul>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Aucun film trouvé.</p>
+{% endif %}
+
+</body>
+</html>

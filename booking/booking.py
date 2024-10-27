@@ -1,11 +1,9 @@
-import grpc
 from concurrent import futures
-import booking_pb2
-import booking_pb2_grpc
+
+import grpc
 import showtime_pb2
 import showtime_pb2_grpc
 import json
-
 
 class BookingServicer(booking_pb2_grpc.BookingServicer):
 
@@ -63,6 +61,7 @@ def write(bookings):
     data = {"bookings": bookings}
     with open('./data/bookings.json', 'w') as f:
         json.dump(data, f, indent=2)
+
 
 
 def serve():
