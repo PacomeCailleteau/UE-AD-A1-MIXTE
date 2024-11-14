@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+service User {
+    rpc GetUsers(Empty) returns (stream UserData) {}
+    rpc AddUser(UserData) returns (UserData) {}
+    rpc GetUserById(UserID) returns (UserData) {}
+    rpc EditUser(UserID) returns (UserData) {}
+    rpc DeleteUser(UserID) returns (UserData) {}
+    rpc getBookingsOfUSer(UserID) returns (UserData) {}
+}
+
+message Empty {}
+
+message UserID {
+    string id = 1;
+}
+
+message UserData {
+    string id = 1;
+    string name = 2;
+    string last_activite = 3;
+}
+
+message UserBookingData {
+  string id = 1;
+  BookingData userBookings = 2;
+}
+
+message BookingData {
+  string date = 1;
+  string movie = 2;
+}
