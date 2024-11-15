@@ -10,42 +10,42 @@ def is_admin(func):
         return func(*args, **kwargs)
     return wrapper
 
-def get_movie_collection():
+def get_movies_collection():
     client = MongoClient("mongodb://localhost:27017/")
     db_name = client["tpmixte"]
     collection = db_name["movies"]
     return collection
 
-def get_movie_data(collection):
+def get_movies_data(collection):
     return list(collection.find())
 
-def get_actor_data():
+def get_actors_data():
     client = MongoClient("mongodb://localhost:27017/")
     db_name = client["tpmixte"]
     collection = db_name["actors"]
     return list(collection.find())
 
-movie_collection = get_movie_collection()
-movie_db = get_movie_data(movie_collection)
-actors_db = get_actor_data()
+movies_collection = get_movies_collection()
+movies_db = get_movies_data(movies_collection)
+actors_db = get_actors_data()
 
 def write_movies(movies):
-    movie_collection.delete_many({})
-    movie_collection.insert_many(movies)
+    movies_collection.delete_many({})
+    movies_collection.insert_many(movies)
 
 def get_movies(_, info):
-    movies = movie_db
+    movies = movies_db
     return movies
 
 def get_movie_with_id(_, info, _id):
-    movies = movie_db
+    movies = movies_db
     for movie in movies:
         if movie['id'] == _id:
             return movie
 
 
 def update_movie_rate(_, info, _id, _rate):
-    movies = movie_db
+    movies = movies_db
     updated_movie = None
 
     for movie in movies:
@@ -67,7 +67,7 @@ def resolve_actors_in_movie(film, info):
 
 
 def create_movie(_, info, _id, _title, _director, _rating):
-    movies = movie_db
+    movies = movies_db
     new_movie = {
         "id": _id,
         "title": _title,
@@ -84,12 +84,12 @@ def create_movie(_, info, _id, _title, _director, _rating):
 
 
 def movies_by_director(_, info, _director):
-    movies = movie_db
+    movies = movies_db
     return [movie for movie in movies if movie['director'] == _director]
 
 
 def sort_movies_by_rating(_, info, order):
-    movies = movie_db
+    movies = movies_db
 
     if order not in ['best', 'worst']:
         raise ValueError("The order must be either 'best' or 'worst'.")
@@ -138,7 +138,7 @@ def get_help(_, info):
 
 
 def delete_movie(_, info, _id):
-    movies = movie_db
+    movies = movies_db
     movie_to_delete = next((movie for movie in movies if movie['id'] == _id), None)
 
     if not movie_to_delete:

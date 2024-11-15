@@ -17,6 +17,10 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         self.collection = self.db_name["bookings"]
         self.db = list(self.collection.find())
 
+    def write(self, bookings):
+        self.collection.delete_many({})
+        self.collection.insert_many(bookings)
+
     def GetBookingByUserID(self, request, context):
         for booking in self.db:
             if booking['userid'] == request.userid:
@@ -53,10 +57,6 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                         return booking_pb2.BookingData(userid=booking['userid'], dates=booking['dates'])
 
         return booking_pb2.BookingData(userid="", dates=[])
-
-    def write(self, bookings):
-        self.collection.delete_many({})
-        self.collection.insert_many(bookings)
 
 def get_showtime_by_date(date):
     with grpc.insecure_channel('localhost:3002') as channel:
