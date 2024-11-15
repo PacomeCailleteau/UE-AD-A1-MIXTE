@@ -19,7 +19,9 @@ Se connecter à la bd
 Depuis mongosh, lancer la commande suivante : 
 ```use tpmixte```
 
-Lancer le script d'import des données du json dans la bd en exécutant le fichier ``init_db.py`` à la racine du projet.
+Lancer le script d'import des données du json dans la bd à la racine du projet : 
+``pyton3 init_db.py``
+
 
 ## Lancement du front
 Ouvrir un terminal à la racine du projet puis lancer les commandes suivantes :

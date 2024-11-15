@@ -1,7 +1,7 @@
+from pymongo import MongoClient
 import json
 from graphql import GraphQLError
 
-from pymongo import MongoClient
 def is_admin(func):
     def wrapper(*args, **kwargs):
         context = args[1].context
@@ -10,34 +10,42 @@ def is_admin(func):
         return func(*args, **kwargs)
     return wrapper
 
-def get_movie_data():
+def get_movie_collection():
     client = MongoClient("mongodb://localhost:27017/")
     db_name = client["tpmixte"]
-    collection = db_name["times"]
+    collection = db_name["movies"]
+    return collection
+
+def get_movie_data(collection):
     return list(collection.find())
 
-db = get_movie_data()
+def get_actor_data():
+    client = MongoClient("mongodb://localhost:27017/")
+    db_name = client["tpmixte"]
+    collection = db_name["actors"]
+    return list(collection.find())
 
-def write(movies):
-    data = {"movies": movies}
-    with open('./data/movies.json', 'w') as f:
-        json.dump(data, f, indent=4)
+movie_collection = get_movie_collection()
+movie_db = get_movie_data(movie_collection)
+actors_db = get_actor_data()
 
+def write_movies(movies):
+    movie_collection.delete_many({})
+    movie_collection.insert_many(movies)
 
 def get_movies(_, info):
-    movies = db
-    return movies['movies']
-
+    movies = movie_db
+    return movies
 
 def get_movie_with_id(_, info, _id):
-    movies = db
-    for movie in movies['movies']:
+    movies = movie_db
+    for movie in movies:
         if movie['id'] == _id:
             return movie
 
 
 def update_movie_rate(_, info, _id, _rate):
-    movies = db['movies']
+    movies = movie_db
     updated_movie = None
 
     for movie in movies:
@@ -47,21 +55,19 @@ def update_movie_rate(_, info, _id, _rate):
             break
 
     if updated_movie:
-        write(movies)
+        write_movies(movies)
         return updated_movie
     else:
         raise ValueError(f"Aucun film trouvé avec l'ID {_id}")
 
 
 def resolve_actors_in_movie(film, info):
-    with open('./databases/actors.json', "r") as file:
-        actors = json.load(file)
-        result = [actor for actor in actors['actors'] if film['id'] in actor['films']]
-        return result
+    result = [actor for actor in actors_db if film['id'] in actor['films']]
+    return result
 
 
 def create_movie(_, info, _id, _title, _director, _rating):
-    movies = db['movies']
+    movies = movie_db
     new_movie = {
         "id": _id,
         "title": _title,
@@ -73,17 +79,17 @@ def create_movie(_, info, _id, _title, _director, _rating):
         raise ValueError("This id is already used.")
 
     movies.append(new_movie)
-    write(movies)
+    write_movies(movies)
     return new_movie
 
 
 def movies_by_director(_, info, _director):
-    movies = db
-    return [movie for movie in movies['movies'] if movie['director'] == _director]
+    movies = movie_db
+    return [movie for movie in movies if movie['director'] == _director]
 
 
 def sort_movies_by_rating(_, info, order):
-    movies = db['movies']
+    movies = movie_db
 
     if order not in ['best', 'worst']:
         raise ValueError("The order must be either 'best' or 'worst'.")
@@ -132,12 +138,12 @@ def get_help(_, info):
 
 
 def delete_movie(_, info, _id):
-    movies = db['movies']
+    movies = movie_db
     movie_to_delete = next((movie for movie in movies if movie['id'] == _id), None)
 
     if not movie_to_delete:
         raise ValueError(f"Aucun film trouvé avec l'ID: {_id}")
 
     movies.remove(movie_to_delete)
-    write(movies)
+    write_movies(movies)
     return f"Film avec l'ID {_id} supprimé avec succès."
