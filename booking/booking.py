@@ -7,7 +7,6 @@ import showtime_pb2
 import showtime_pb2_grpc
 import booking_pb2
 import booking_pb2_grpc
-import json
 from pymongo import MongoClient
 
 class BookingServicer(booking_pb2_grpc.BookingServicer):
@@ -42,7 +41,7 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                 # si la date n'existe pas alors on la crée
                 if not any(date['date'] == request.date for date in booking['dates']):
                     booking['dates'].append({'date': request.date, 'movies': [request.movie]})
-                    write(self.db)
+                    self.write(self.db)
                     return booking_pb2.BookingData(userid=booking['userid'], dates=booking['dates'])
                 # sinon on parcours la liste pour mettre l'item au bon endroit
                 for date in booking['dates']:
@@ -50,11 +49,14 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                         if request.movie in date['movies']:
                             return booking_pb2.BookingData(userid=booking['userid'], dates=booking['dates'])
                         date['movies'].append(request.movie)
-                        write(self.db)
+                        self.write(self.db)
                         return booking_pb2.BookingData(userid=booking['userid'], dates=booking['dates'])
 
         return booking_pb2.BookingData(userid="", dates=[])
 
+    def write(self, bookings):
+        self.collection.delete_many({})
+        self.collection.insert_many(bookings)
 
 def get_showtime_by_date(date):
     with grpc.insecure_channel('localhost:3002') as channel:
@@ -62,13 +64,6 @@ def get_showtime_by_date(date):
         showtime_date = showtime_pb2.ShowtimeDate(date=date)
         response = stub.GetShowtimeByDate(showtime_date)
         return response
-
-
-def write(bookings):
-    data = {"bookings": bookings}
-    with open('./data/bookings.json', 'w') as f:
-        json.dump(data, f, indent=2)
-
 
 
 def serve():
