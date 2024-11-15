@@ -1,7 +1,4 @@
 # REST API
-import json
-
-from flask import Flask
 
 # CALLING gRPC requests
 import json
