@@ -1,5 +1,4 @@
-{
-    "actors": [
+[
       {
         "id": "actor1",
         "firstname": "Leonardo",
@@ -43,4 +42,3 @@
         "films": ["7daf7208-be4d-4944-a3ae-c1c2f516f3e6","39ab85e5-5e8e-4dc5-afea-65dc368bd7ab"]
       }
     ]
-  }

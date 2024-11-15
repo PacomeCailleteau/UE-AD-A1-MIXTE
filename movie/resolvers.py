@@ -1,6 +1,7 @@
 import json
 from graphql import GraphQLError
 
+from pymongo import MongoClient
 def is_admin(func):
     def wrapper(*args, **kwargs):
         context = args[1].context
@@ -10,10 +11,12 @@ def is_admin(func):
     return wrapper
 
 def get_movie_data():
-    with open('./data/movies.json', "r") as file:
-        movies = json.load(file)
-        return movies
+    client = MongoClient("mongodb://localhost:27017/")
+    db_name = client["tpmixte"]
+    collection = db_name["times"]
+    return list(collection.find())
 
+db = get_movie_data()
 
 def write(movies):
     data = {"movies": movies}
@@ -22,19 +25,19 @@ def write(movies):
 
 
 def get_movies(_, info):
-    movies = get_movie_data()
+    movies = db
     return movies['movies']
 
 
 def get_movie_with_id(_, info, _id):
-    movies = get_movie_data()
+    movies = db
     for movie in movies['movies']:
         if movie['id'] == _id:
             return movie
 
 
 def update_movie_rate(_, info, _id, _rate):
-    movies = get_movie_data()['movies']
+    movies = db['movies']
     updated_movie = None
 
     for movie in movies:
@@ -58,7 +61,7 @@ def resolve_actors_in_movie(film, info):
 
 
 def create_movie(_, info, _id, _title, _director, _rating):
-    movies = get_movie_data()['movies']
+    movies = db['movies']
     new_movie = {
         "id": _id,
         "title": _title,
@@ -75,12 +78,12 @@ def create_movie(_, info, _id, _title, _director, _rating):
 
 
 def movies_by_director(_, info, _director):
-    movies = get_movie_data()
+    movies = db
     return [movie for movie in movies['movies'] if movie['director'] == _director]
 
 
 def sort_movies_by_rating(_, info, order):
-    movies = get_movie_data()['movies']
+    movies = db['movies']
 
     if order not in ['best', 'worst']:
         raise ValueError("The order must be either 'best' or 'worst'.")
@@ -129,7 +132,7 @@ def get_help(_, info):
 
 
 def delete_movie(_, info, _id):
-    movies = get_movie_data()['movies']
+    movies = db['movies']
     movie_to_delete = next((movie for movie in movies if movie['id'] == _id), None)
 
     if not movie_to_delete:

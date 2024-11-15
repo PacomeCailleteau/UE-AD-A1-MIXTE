@@ -8,12 +8,15 @@ import showtime_pb2_grpc
 import booking_pb2
 import booking_pb2_grpc
 import json
+from pymongo import MongoClient
 
 class BookingServicer(booking_pb2_grpc.BookingServicer):
 
     def __init__(self):
-        with open('{}/data/bookings.json'.format("."), "r") as jsf:
-            self.db = json.load(jsf)["bookings"]
+        self.client = MongoClient("mongodb://localhost:27017/")
+        self.db_name = self.client["tpmixte"]
+        self.collection = self.db_name["bookings"]
+        self.db = list(self.collection.find())
 
     def GetBookingByUserID(self, request, context):
         for booking in self.db:

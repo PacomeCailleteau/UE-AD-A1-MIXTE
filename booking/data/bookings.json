@@ -1,5 +1,4 @@
-{
-  "bookings": [
+[
     {
       "userid": "chris_rivers",
       "dates": [
@@ -55,4 +54,3 @@
       ]
     }
   ]
-}

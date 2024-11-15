@@ -1,5 +1,4 @@
-{
-  "users": [
+[
     {
       "id": "chris_rivers",
       "name": "Chris Rivers",
@@ -63,4 +62,3 @@
       "password": "psw"
     }
   ]
-}
