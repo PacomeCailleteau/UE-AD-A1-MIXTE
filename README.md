@@ -2,6 +2,7 @@
 
 
 ## Base de données MongoDB
+### Installation de MongoDB
 Suivre la [documentation](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/) d'installation de MongoDB en local sur Ubuntu. (Faire les 4 premiers points)
 
 ### Création de la base de données mongo local
