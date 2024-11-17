@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { CREATE_MOVIE } from "../graphql/mutations";
 import { Form, Button, Alert } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddMovie = () => {
     const [id, setId] = useState('');
@@ -10,24 +12,21 @@ const AddMovie = () => {
     const [rating, setRating] = useState('');
     const [createMovie, { data, loading, error }] = useMutation(CREATE_MOVIE);
 
-    const isValidId = () => /^[0-9S]+$/.test(id);
-    const isValidRating = () => {
-        const numRating = parseFloat(rating);
-        return !isNaN(numRating) && numRating >= 0 && numRating <= 10;
-    };
-    const isFormValid = () => id && title && director && isValidId() && isValidRating();
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!isFormValid()) return;
-        createMovie({
-            variables: {
-                id,
-                title,
-                director,
-                rating: parseFloat(rating),
-            },
-        });
+        try {
+            await createMovie({
+                variables: {
+                    id,
+                    title,
+                    director,
+                    rating: parseFloat(rating),
+                },
+            });
+            toast.success("Le film a été créé avec succès !");
+        } catch (err) {
+            toast.error("Une erreur s'est produite lors de la création du film.");
+        }
     };
 
     return (
@@ -36,15 +35,11 @@ const AddMovie = () => {
                 <Form.Group className="mb-3">
                     <Form.Label>ID</Form.Label>
                     <Form.Control
-                        type="number"
+                        type="text"
                         placeholder="Veuillez saisir l'ID"
                         value={id}
                         onChange={(e) => setId(e.target.value)}
-                        isInvalid={id && !isValidId()}
                     />
-                    <Form.Control.Feedback type="invalid">
-                        L'ID doit contenir uniquement des chiffres ou le caractère "-".
-                    </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
@@ -74,28 +69,26 @@ const AddMovie = () => {
                         placeholder="Veuillez saisir une note entre 0 et 10"
                         value={rating}
                         onChange={(e) => setRating(e.target.value)}
-                        isInvalid={rating && !isValidRating()}
                     />
-                    <Form.Control.Feedback type="invalid">
-                        La note doit être un nombre entre 0 et 10.
-                    </Form.Control.Feedback>
                 </Form.Group>
 
-                <Button variant="primary" type="submit" disabled={!isFormValid() || loading}>
-                    {loading ? 'Creating...' : 'Créer le film'}
+                <Button variant="primary" type="submit" disabled={loading}>
+                    {loading ? 'Création en cours...' : 'Créer le film'}
                 </Button>
             </Form>
 
             {error && <Alert variant="danger" className="mt-3">{error.message}</Alert>}
             {data && (
                 <Alert variant="success" className="mt-3">
-                    <strong>Movie Created!</strong>
-                    <p>ID: {id}</p>
-                    <p>Title: {title}</p>
-                    <p>Director: {director}</p>
-                    <p>Rating: {rating}</p>
+                    <strong>Film créé !</strong>
+                    <p>ID : {id}</p>
+                    <p>Title : {title}</p>
+                    <p>Réalisé par : {director}</p>
+                    <p>Note : {rating}</p>
                 </Alert>
             )}
+
+            <ToastContainer />
         </div>
     );
 };

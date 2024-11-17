@@ -1,20 +1,28 @@
 import React, { useState } from "react";
-import {useMutation, useQuery} from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { GET_MOVIES } from "../graphql/queries";
 import { Link } from "react-router-dom";
-import {DELETE_MOVIE} from "../graphql/mutations";
+import { DELETE_MOVIE } from "../graphql/mutations";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "../styles/movieList.css";
 
 const MovieList = () => {
     const { data, loading, error, refetch } = useQuery(GET_MOVIES);
 
-    const [deleteMovie, { loading: deleting }] = useMutation(DELETE_MOVIE, {
+    const [deleteMovie] = useMutation(DELETE_MOVIE, {
         onCompleted: () => {
             refetch();
+            toast.success("Le film a été supprimé avec succès !");
+        },
+        onError: () => {
+            toast.error("Une erreur s'est produite lors de la suppression du film.");
         },
     });
 
     const [currentPage, setCurrentPage] = useState(1);
     const [moviesPerPage, setMoviesPerPage] = useState(5);
+    const [deletingMovieId, setDeletingMovieId] = useState(null);
 
     if (loading) return <p>Chargement...</p>;
     if (error) return <p>Erreur : {error.message}</p>;
@@ -28,12 +36,11 @@ const MovieList = () => {
     const handleDelete = async (id) => {
         const confirmed = window.confirm("Êtes-vous sûr de vouloir supprimer ce film ?");
         if (confirmed) {
-            try {
+            setDeletingMovieId(id);
+            setTimeout(async () => {
                 await deleteMovie({ variables: { id } });
-                alert("Le film a été supprimé avec succès !");
-            } catch (err) {
-                alert("Une erreur s'est produite lors de la suppression du film.");
-            }
+                setDeletingMovieId(null);
+            }, 1000);
         }
     };
 
@@ -64,7 +71,12 @@ const MovieList = () => {
         <div>
             <ul className="list-group">
                 {currentMovies.map((movie) => (
-                    <li key={movie.id} className="list-group-item d-flex justify-content-between align-items-center">
+                    <li
+                        key={movie.id}
+                        className={`list-group-item d-flex justify-content-between align-items-center ${
+                            deletingMovieId === movie.id ? "fade-out" : ""
+                        }`}
+                    >
                         <div>
                             <h5>{movie.title}</h5>
                             <p>Id: {movie.id}</p>
@@ -72,13 +84,15 @@ const MovieList = () => {
                             <p>Note : {movie.rating}</p>
                         </div>
                         <div className="d-flex flex-column align-items-end">
-                            <Link to={`/update-movie/${movie.id}`} className="btn btn-primary mb-2">Modifier</Link>
+                            <Link to={`/update-movie/${movie.id}`} className="btn btn-primary mb-2">
+                                Modifier
+                            </Link>
                             <button
                                 className="btn btn-danger"
                                 onClick={() => handleDelete(movie.id)}
-                                disabled={deleting}
+                                disabled={deletingMovieId === movie.id}
                             >
-                                {deleting ? "Suppression..." : "Supprimer"}
+                                {deletingMovieId === movie.id ? "Suppression..." : "Supprimer"}
                             </button>
                         </div>
                     </li>
@@ -123,6 +137,8 @@ const MovieList = () => {
                         <input
                             type="number"
                             value={currentPage}
+                            min="1"
+                            max={totalPages}
                             onChange={handlePageChange}
                             className="form-control d-inline-block mx-2"
                             style={{ width: "80px" }}
@@ -130,6 +146,8 @@ const MovieList = () => {
                     </label>
                 </div>
             </div>
+
+            <ToastContainer />
         </div>
     );
 };

@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MOVIE_BY_ID } from "../graphql/queries";
 import { UPDATE_MOVIE } from "../graphql/mutations";
 import { useParams } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const UpdateMovie = () => {
     const { id } = useParams();
@@ -15,6 +17,12 @@ const UpdateMovie = () => {
     const [updateMovie, { loading: updating, error: updateError }] = useMutation(UPDATE_MOVIE);
     const [rating, setRating] = useState("");
 
+    useEffect(() => {
+        if (data && data.movie_by_id) {
+            setRating(data.movie_by_id.rating);
+        }
+    }, [data]);
+
     if (loading) return <p>Chargement des données...</p>;
 
     if (error) return <p>Erreur : {error.message}</p>;
@@ -22,23 +30,26 @@ const UpdateMovie = () => {
     const movie = data?.movie_by_id;
     if (!movie) return <p>Film introuvable.</p>;
 
-    if (rating === "" && movie.rating !== undefined) setRating(movie.rating);
-
     const isValidRating = () => {
         const numRating = parseFloat(rating);
         return !isNaN(numRating) && numRating >= 0 && numRating <= 10;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isValidRating()) return;
 
-        updateMovie({
-            variables: {
-                id,
-                rating: parseFloat(rating),
-            },
-        });
+        try {
+            await updateMovie({
+                variables: {
+                    id,
+                    rating: parseFloat(rating),
+                },
+            });
+            toast.success("Le film a été modifié avec succès !");
+        } catch (err) {
+            toast.error("Une erreur s'est produite lors de la modification du film.");
+        }
     };
 
     return (
@@ -84,6 +95,8 @@ const UpdateMovie = () => {
             </Form>
 
             {updateError && <Alert variant="danger" className="mt-3">{updateError.message}</Alert>}
+
+            <ToastContainer />
         </div>
     );
 };
