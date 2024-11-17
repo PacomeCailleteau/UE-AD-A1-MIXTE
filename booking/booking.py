@@ -5,6 +5,8 @@ import booking_pb2
 import booking_pb2_grpc
 import showtime_pb2
 import showtime_pb2_grpc
+import booking_pb2
+import booking_pb2_grpc
 import json
 
 class BookingServicer(booking_pb2_grpc.BookingServicer):
