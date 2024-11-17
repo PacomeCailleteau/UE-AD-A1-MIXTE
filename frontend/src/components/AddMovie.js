@@ -73,7 +73,7 @@ const AddMovie = () => {
                 </Form.Group>
 
                 <Button variant="primary" type="submit" disabled={loading}>
-                    {loading ? 'Création en cours...' : 'Créer le film'}
+                    {loading ? 'Création en cours...' : 'Ajouter le film'}
                 </Button>
             </Form>
 
