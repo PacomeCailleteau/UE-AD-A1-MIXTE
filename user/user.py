@@ -10,7 +10,7 @@ import booking_pb2_grpc
 app = Flask(__name__)
 
 # A VOIR POUR METTRE DANS UN .ENV ?
-PORT = 3203
+PORT = 3004
 HOST = '0.0.0.0'
 BOOKING_SERVICE_URL = "localhost:3003"
 MOVIE_SERVICE_URL = "http://127.0.0.1:3001/graphql"
@@ -118,7 +118,7 @@ def get_user_bookings(userid):
     return
 
 
-
+# Récupérer les informations de films via leur id en graphQL
 def fetch_movie_details(movie_ids):
     """ Fonction pour récupérer les informations des films via GraphQL (un ID à la fois) """
     query = """
