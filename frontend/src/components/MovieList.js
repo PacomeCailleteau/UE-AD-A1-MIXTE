@@ -1,10 +1,17 @@
 import React, { useState } from "react";
-import { useQuery } from "@apollo/client";
+import {useMutation, useQuery} from "@apollo/client";
 import { GET_MOVIES } from "../graphql/queries";
 import { Link } from "react-router-dom";
+import {DELETE_MOVIE} from "../graphql/mutations";
 
 const MovieList = () => {
-    const { data, loading, error } = useQuery(GET_MOVIES);
+    const { data, loading, error, refetch } = useQuery(GET_MOVIES);
+
+    const [deleteMovie, { loading: deleting }] = useMutation(DELETE_MOVIE, {
+        onCompleted: () => {
+            refetch();
+        },
+    });
 
     const [currentPage, setCurrentPage] = useState(1);
     const [moviesPerPage, setMoviesPerPage] = useState(5);
@@ -17,6 +24,18 @@ const MovieList = () => {
     const currentMovies = data.movies.slice(indexOfFirstMovie, indexOfLastMovie);
 
     const totalPages = Math.ceil(data.movies.length / moviesPerPage);
+
+    const handleDelete = async (id) => {
+        const confirmed = window.confirm("Êtes-vous sûr de vouloir supprimer ce film ?");
+        if (confirmed) {
+            try {
+                await deleteMovie({ variables: { id } });
+                alert("Le film a été supprimé avec succès !");
+            } catch (err) {
+                alert("Une erreur s'est produite lors de la suppression du film.");
+            }
+        }
+    };
 
     const handlePreviousPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -54,7 +73,13 @@ const MovieList = () => {
                         </div>
                         <div className="d-flex flex-column align-items-end">
                             <Link to={`/update-movie/${movie.id}`} className="btn btn-primary mb-2">Modifier</Link>
-                            <button className="btn btn-danger">Supprimer</button>
+                            <button
+                                className="btn btn-danger"
+                                onClick={() => handleDelete(movie.id)}
+                                disabled={deleting}
+                            >
+                                {deleting ? "Suppression..." : "Supprimer"}
+                            </button>
                         </div>
                     </li>
                 ))}
