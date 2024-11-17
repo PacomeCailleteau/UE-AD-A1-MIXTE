@@ -1,5 +1,13 @@
 import json
+from graphql import GraphQLError
 
+def is_admin(func):
+    def wrapper(*args, **kwargs):
+        context = args[1].context
+        if not context.get("role") == "admin":
+            raise GraphQLError("Accès interdit : droits insuffisants.")
+        return func(*args, **kwargs)
+    return wrapper
 
 def get_movie_data():
     with open('./data/movies.json', "r") as file:

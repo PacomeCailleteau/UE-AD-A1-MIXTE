@@ -1,6 +1,8 @@
 from concurrent import futures
 
 import grpc
+import booking_pb2
+import booking_pb2_grpc
 import showtime_pb2
 import showtime_pb2_grpc
 import json
