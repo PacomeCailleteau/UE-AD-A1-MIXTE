@@ -1,5 +1,4 @@
 import json
-from lib2to3.fixes.fix_input import context
 
 import grpc
 import requests
@@ -13,8 +12,8 @@ app = Flask(__name__)
 # A VOIR POUR METTRE DANS UN .ENV ?
 PORT = 3203
 HOST = '0.0.0.0'
-BOOKING_SERVICE_URL = "http://localhost:3003/bookings/"
-MOVIE_SERVICE_URL = "http://localhost:3200/movies/"
+BOOKING_SERVICE_URL = "localhost:3003"
+MOVIE_SERVICE_URL = "http://127.0.0.1:3001/graphql"
 
 with open('{}/data/users.json'.format("."), "r") as jsf:
     users = json.load(jsf)["users"]
@@ -96,7 +95,7 @@ def get_user_bookings(userid):
     for user in users:
         if str(user["id"]) == str(userid):
             try:
-                with grpc.insecure_channel('localhost:3003') as channel:
+                with grpc.insecure_channel(BOOKING_SERVICE_URL) as channel:
                     stub = booking_pb2_grpc.BookingStub(channel)
                     request_grpc = booking_pb2.UserId(userid=userid)
                     response = stub.GetBookingByUserID(request_grpc)
@@ -117,6 +116,38 @@ def get_user_bookings(userid):
                     "details": e.details()
                 }), 500)
     return
+
+
+
+def fetch_movie_details(movie_ids):
+    """ Fonction pour récupérer les informations des films via GraphQL (un ID à la fois) """
+    query = """
+    query Movie_by_id($id: String!) {
+        movie_by_id(_id: $id) {
+            id
+            title
+            director
+            rating
+        }
+    }
+    """
+
+    movie_details = []
+
+    for movie_id in movie_ids:
+        variables = {
+            "id": movie_id  # Un seul ID à la fois
+        }
+
+        response = requests.post(MOVIE_SERVICE_URL, json={'query': query, 'variables': variables})
+
+        if response.status_code == 200:
+            # Ajoutez les données du film récupérées à la liste des résultats
+            movie_details.append(response.json()["data"]["movie_by_id"])
+        else:
+            raise Exception(f"GraphQL query failed for ID {movie_id}: {response.text}")
+
+    return movie_details
 
 
 # même chose, mais en récupérant aussi les infos des films (lien avec booking et movie)
@@ -125,40 +156,46 @@ def get_user_bookings_movies(userid):
     for user in users:
         if str(user["id"]) == str(userid):
             try:
-                with grpc.insecure_channel('localhost:3003') as channel:
+                with grpc.insecure_channel(BOOKING_SERVICE_URL) as channel:
                     stub = booking_pb2_grpc.BookingStub(channel)
                     request_grpc = booking_pb2.UserId(userid=userid)
                     response = stub.GetBookingByUserID(request_grpc)
 
-                    bookings = [
-                        {
+                    movie_ids = []
+                    bookings = []
+                    for showtime in response.dates:
+                        movies_list = list(showtime.movies)
+                        movie_ids.extend(movies_list)
+                        bookings.append({
                             "date": showtime.date,
-                            "movies": list(showtime.movies)  # Convertir RepeatedScalarContainer en liste
-                        }
-                        for showtime in response.dates
-                    ]
+                            "movies": movies_list
+                        })
 
-                    try:
-                        for booking in bookings:
-                            for movie in booking["movies"]:
-                                print(movie)
-                                # FAIRE EN GRAPHQL
+                    # Récupération des informations sur les films
+                    movie_details = fetch_movie_details(movie_ids)
 
-                    except grpc.RpcError as e:
-                        # Gérez les erreurs gRPC
-                        return make_response(jsonify({
-                            "error": "Error contacting Booking service",
-                            "details": e.details()
-                        }), 500)
+                    for booking in bookings:
+                        booking["movie_details"] = []
+                        for movie in booking["movies"]:
+                            movie_info = next(
+                                (movie_detail for movie_detail in movie_details if movie_detail["id"] == movie), None)
+                            if movie_info:
+                                booking["movie_details"].append(movie_info)
+
                     return make_response(jsonify({"userid": response.userid, "bookings": bookings}), 200)
 
             except grpc.RpcError as e:
-                # Gérez les erreurs gRPC
                 return make_response(jsonify({
                     "error": "Error contacting Booking service",
                     "details": e.details()
                 }), 500)
-    return
+            except Exception as e:
+                return make_response(jsonify({
+                    "error": "Error contacting Movie service",
+                    "details": str(e)
+                }), 500)
+
+    return make_response(jsonify({"error": "User not found"}), 404)
 
 
 def write(users):
