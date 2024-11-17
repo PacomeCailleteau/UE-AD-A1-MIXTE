@@ -2,7 +2,9 @@ import json
 
 import grpc
 import requests
+from bson import ObjectId
 from flask import Flask, request, jsonify, make_response
+from pymongo import MongoClient
 
 import booking_pb2
 import booking_pb2_grpc
@@ -15,10 +17,33 @@ HOST = '0.0.0.0'
 BOOKING_SERVICE_URL = "localhost:3003"
 MOVIE_SERVICE_URL = "http://127.0.0.1:3001/graphql"
 
-with open('{}/data/users.json'.format("."), "r") as jsf:
-    users = json.load(jsf)["users"]
-#with open("UE-archi-distribuees-User-1.0.0-resolved.yaml", "r") as f:
-#    openapi_spec = yaml.safe_load(f)
+def get_users_collection():
+    client = MongoClient("mongodb://localhost:27017/")
+    db_name = client["tpmixte"]
+    collection = db_name["users"]
+    return collection
+
+def get_users_data(collection):
+    users = list(collection.find())
+    return users
+
+users_collection = get_users_collection()
+users_db = get_users_data(users_collection)
+
+def write(users):
+    users_collection.delete_many({})
+    users_collection.insert_many(users)
+
+# Used to serialize ObjectId to string, otherwise it give an error when serializing to JSON
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        return super().default(obj)
+
+# Used to easily convert data to JSON using the custom JSONEncoder
+def custom_jsonify(data):
+    return json.loads(JSONEncoder().encode(data))
 
 @app.route("/", methods=['GET'])
 def home():
@@ -27,7 +52,7 @@ def home():
 
 @app.route("/users", methods=['GET'])
 def get_users():
-    json = jsonify(users)
+    json = custom_jsonify(users_db)
     response = make_response(json, 200)
     return response
 
@@ -36,21 +61,21 @@ def get_users():
 def add_user():
     req = request.get_json()
 
-    for user in users:
+    for user in users_db:
         if str(user['id']) == req['id']:
-            return make_response(jsonify({'error': 'User ID already exists'}, user), 409)
+            return make_response(jsonify({'error': 'User ID already exists'}, custom_jsonify(user)), 409)
 
-    users.append(req)
-    write(users)
+    users_db.append(req)
+    write(users_db)
 
-    return make_response(jsonify({"message": "user added"}, req), 200)
+    return make_response(jsonify({"message": "user added"}, custom_jsonify(req)), 200)
 
 
 @app.route("/users/<userid>", methods=['GET'])
 def get_user_byid(userid):
-    for user in users:
+    for user in users_db:
         if str(user['id']) == str(userid):
-            return make_response(jsonify(user), 200)
+            return make_response(custom_jsonify(user), 200)
     return make_response(jsonify({'error': 'User not found', "id": userid}), 404)
 
 
@@ -59,22 +84,22 @@ def get_user_byid(userid):
 def update_user_byid(userid):
     req = request.get_json()
 
-    for user in users:
+    for user in users_db:
         if str(user['id']) == str(userid):
-            users.remove(user)
-            users.append(req)
-            write(users)
-            return make_response(jsonify({"message": "user updated"},req), 200)
+            users_db.remove(user)
+            users_db.append(req)
+            write(users_db)
+            return make_response(jsonify({"message": "user updated"}, custom_jsonify(req)), 200)
     return make_response(jsonify({'error': 'User not found', "id": userid}), 404)
 
 
 @app.route("/users/<userid>", methods=['DELETE'])
 def del_user_byid(userid):
-    for user in users:
+    for user in users_db:
         if str(user["id"]) == str(userid):
-            users.remove(user)
-            write(users)
-            return make_response(jsonify({"message": "user deleted"}, user),200)
+            users_db.remove(user)
+            write(users_db)
+            return make_response(jsonify({"message": "user deleted"}, custom_jsonify(user)),200)
 
     res = make_response(jsonify({"error":"user ID not found", "id": userid}),400)
     return res
@@ -83,16 +108,15 @@ def del_user_byid(userid):
 # Tous les users triés par leur dernière activité
 @app.route("/users/bylastactive", methods=['GET'])
 def get_user_bylastactive():
-    json = jsonify(users)
-    sorted_users_bylastactive = sorted(users, key=lambda user: user.get("last_active", 0))
-    response = make_response(sorted_users_bylastactive, 200)
+    sorted_users_bylastactive = sorted(users_db, key=lambda user: user.get("last_active", 0))
+    response = make_response(custom_jsonify(sorted_users_bylastactive), 200)
     return response
 
 
 # récupérer tous les bookings d'un user (lien avec booking)
 @app.route("/users/<userid>/bookings", methods=['GET'])
 def get_user_bookings(userid):
-    for user in users:
+    for user in users_db:
         if str(user["id"]) == str(userid):
             try:
                 with grpc.insecure_channel(BOOKING_SERVICE_URL) as channel:
@@ -153,7 +177,7 @@ def fetch_movie_details(movie_ids):
 # même chose, mais en récupérant aussi les infos des films (lien avec booking et movie)
 @app.route("/users/<userid>/bookings/movies", methods=['GET'])
 def get_user_bookings_movies(userid):
-    for user in users:
+    for user in users_db:
         if str(user["id"]) == str(userid):
             try:
                 with grpc.insecure_channel(BOOKING_SERVICE_URL) as channel:
@@ -196,13 +220,6 @@ def get_user_bookings_movies(userid):
                 }), 500)
 
     return make_response(jsonify({"error": "User not found"}), 404)
-
-
-def write(users):
-    data = {"users": users}
-    with open('./data/users.json', 'w') as f:
-        json.dump(data, f, indent=2)
-
 
 if __name__ == "__main__":
     print("Server running in port %s" % (PORT))
