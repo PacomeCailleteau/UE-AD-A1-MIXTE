@@ -29,10 +29,6 @@ movies_collection = get_movies_collection()
 movies_db = get_movies_data(movies_collection)
 actors_db = get_actors_data()
 
-def write_movies(movies):
-    movies_collection.delete_many({})
-    movies_collection.insert_many(movies)
-
 def get_movies(_, info):
     movies = movies_db
     return movies
@@ -55,7 +51,7 @@ def update_movie_rate(_, info, _id, _rate):
             break
 
     if updated_movie:
-        write_movies(movies)
+        movies_collection.update_one({"id": _id}, {"$set": {"rating": _rate}})
         return updated_movie
     else:
         raise ValueError(f"Aucun film trouvé avec l'ID {_id}")
@@ -79,7 +75,7 @@ def create_movie(_, info, _id, _title, _director, _rating):
         raise ValueError("This id is already used.")
 
     movies.append(new_movie)
-    write_movies(movies)
+    movies_collection.insert_one(new_movie)
     return new_movie
 
 
@@ -145,5 +141,5 @@ def delete_movie(_, info, _id):
         raise ValueError(f"Aucun film trouvé avec l'ID: {_id}")
 
     movies.remove(movie_to_delete)
-    write_movies(movies)
+    movies_collection.delete_one({"id": _id})
     return f"Film avec l'ID {_id} supprimé avec succès."

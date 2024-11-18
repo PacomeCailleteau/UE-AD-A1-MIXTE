@@ -17,10 +17,6 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
         self.collection = self.db_name["bookings"]
         self.db = list(self.collection.find())
 
-    def write(self, bookings):
-        self.collection.delete_many({})
-        self.collection.insert_many(bookings)
-
     def GetBookingByUserID(self, request, context):
         for booking in self.db:
             if booking['userid'] == request.userid:
@@ -45,7 +41,9 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                 # si la date n'existe pas alors on la crée
                 if not any(date['date'] == request.date for date in booking['dates']):
                     booking['dates'].append({'date': request.date, 'movies': [request.movie]})
-                    self.write(self.db)
+                    self.collection.update_one(
+                        {"userid": request.userid},
+                        {"$set": {"dates": booking['dates']}})
                     return booking_pb2.BookingData(userid=booking['userid'], dates=booking['dates'])
                 # sinon on parcours la liste pour mettre l'item au bon endroit
                 for date in booking['dates']:
@@ -53,7 +51,9 @@ class BookingServicer(booking_pb2_grpc.BookingServicer):
                         if request.movie in date['movies']:
                             return booking_pb2.BookingData(userid=booking['userid'], dates=booking['dates'])
                         date['movies'].append(request.movie)
-                        self.write(self.db)
+                        self.collection.update_one(
+                            {"userid": request.userid},
+                            {"$set": {"dates": booking['dates']}})
                         return booking_pb2.BookingData(userid=booking['userid'], dates=booking['dates'])
 
         return booking_pb2.BookingData(userid="", dates=[])

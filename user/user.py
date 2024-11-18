@@ -30,10 +30,6 @@ def get_users_data(collection):
 users_collection = get_users_collection()
 users_db = get_users_data(users_collection)
 
-def write(users):
-    users_collection.delete_many({})
-    users_collection.insert_many(users)
-
 # Used to serialize ObjectId to string, otherwise it give an error when serializing to JSON
 class JSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -66,7 +62,7 @@ def add_user():
             return make_response(jsonify({'error': 'User ID already exists'}, custom_jsonify(user)), 409)
 
     users_db.append(req)
-    write(users_db)
+    users_collection.insert_one(req)
 
     return make_response(jsonify({"message": "user added"}, custom_jsonify(req)), 200)
 
@@ -88,7 +84,7 @@ def update_user_byid(userid):
         if str(user['id']) == str(userid):
             users_db.remove(user)
             users_db.append(req)
-            write(users_db)
+            users_collection.update_one({"id": userid}, {"$set": req})
             return make_response(jsonify({"message": "user updated"}, custom_jsonify(req)), 200)
     return make_response(jsonify({'error': 'User not found', "id": userid}), 404)
 
@@ -98,7 +94,7 @@ def del_user_byid(userid):
     for user in users_db:
         if str(user["id"]) == str(userid):
             users_db.remove(user)
-            write(users_db)
+            users_collection.delete_one({"id": userid})
             return make_response(jsonify({"message": "user deleted"}, custom_jsonify(user)),200)
 
     res = make_response(jsonify({"error":"user ID not found", "id": userid}),400)
