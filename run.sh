@@ -20,3 +20,8 @@ cd ..
 cd user
 python3 user.py &
 cd ..
+
+# lancer le front
+cd frontend
+npm start &
+cd ..

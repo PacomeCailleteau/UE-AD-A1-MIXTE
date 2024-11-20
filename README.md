@@ -1,9 +1,17 @@
 # UE-AD-A1-MIXTE
-Notre projet offre les microservices suivants :
-- showtime sur ce [lien](http://localhost:3002)
-- booking sur ce [lien](http://localhost:3003)
-- movie sur ce [lien](http://localhost:3001)
-- user sur ce [lien](http://localhost:3004)
+
+### Auteurs
+- Nicolas CHUSSEAU
+- Pacôme CAILLETEAU
+- Marina CARBONE
+---
+
+### Notre projet offre les microservices suivants :
+- Showtime sur ce [lien](http://localhost:3002).
+- Booking sur ce [lien](http://localhost:3003).
+- Movie sur ce [lien](http://localhost:3001).
+- User sur ce [lien](http://localhost:3004).
+- Application React sur ce [lien](http://localhost:3000).
 
 ## Base de données MongoDB
 ### Installation de MongoDB
@@ -27,11 +35,6 @@ Vous pouvez fermer mongosh.
 Lancer le script d'import des données du json dans la bd à la racine du projet :   
 ``pyton3 init_db.py``  
 
-## Lancer les microservices (à faire après avoir créé la base de données)
-Avant de lancer le script run.sh, il faut s'assurer que la base de données est bien lancée.
-Le script run.sh permet de lancer la base de données et les microservices en même temps. Pour le lancer, il suffit de taper la commande suivante :  
-`./run.sh`
-
 ## Lancement du front
 Ouvrir un terminal à la racine du projet puis lancer les commandes suivantes :
 ```
@@ -40,3 +43,12 @@ npm install
 npm start
 ```
 Un nouvel onglet s'ouvrira dans votre navigateur par défaut.
+
+## Lancer les microservices et le front
+Avant de lancer le script run.sh, il faut :
+- Installer les dépendances des microservices depuis le fichier requirements.txt.
+- Installer les dépendances du front en suivant les instructions ci-dessus.
+- Lancer la base de données mongo en suivant les instructions ci-dessus.  
+
+Le script run.sh permet de lancer le front et les microservices en même temps. Pour le lancer, il suffit de taper la commande suivante :  
+`./run.sh`  
