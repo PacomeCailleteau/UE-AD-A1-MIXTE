@@ -2,13 +2,15 @@ import grpc
 from concurrent import futures
 import showtime_pb2
 import showtime_pb2_grpc
-import json
+from pymongo import MongoClient
 
 class ShowtimeServicer(showtime_pb2_grpc.ShowtimeServicer):
 
     def __init__(self):
-        with open('{}/data/times.json'.format("."), "r") as jsf:
-            self.db = json.load(jsf)["schedule"]
+        self.client = MongoClient("mongodb://localhost:27017/")
+        self.db_name = self.client["tpmixte"]
+        self.collection = self.db_name["times"]
+        self.db = list(self.collection.find())
 
     def GetShowtimeByDate(self, request, context):
         for showtime in self.db:
