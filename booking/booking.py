@@ -1,8 +1,6 @@
 from concurrent import futures
 
 import grpc
-import booking_pb2
-import booking_pb2_grpc
 import showtime_pb2
 import showtime_pb2_grpc
 import booking_pb2
@@ -12,10 +10,10 @@ from pymongo import MongoClient
 class BookingServicer(booking_pb2_grpc.BookingServicer):
 
     def __init__(self):
-        self.client = MongoClient("mongodb://localhost:27017/")
-        self.db_name = self.client["tpmixte"]
-        self.collection = self.db_name["bookings"]
-        self.db = list(self.collection.find())
+        self.client = MongoClient("mongodb://localhost:27017/") # On récupère le client mongodb
+        self.db_name = self.client["tpmixte"] # On récupère la base de données du tp
+        self.collection = self.db_name["bookings"] #On récupère la collection bookings
+        self.db = list(self.collection.find()) #On stocke les données dans une variable pour éviter de faire des requêtes à chaque fois
 
     def GetBookingByUserID(self, request, context):
         for booking in self.db:

@@ -7,10 +7,10 @@ from pymongo import MongoClient
 class ShowtimeServicer(showtime_pb2_grpc.ShowtimeServicer):
 
     def __init__(self):
-        self.client = MongoClient("mongodb://localhost:27017/")
-        self.db_name = self.client["tpmixte"]
-        self.collection = self.db_name["times"]
-        self.db = list(self.collection.find())
+        self.client = MongoClient("mongodb://localhost:27017/") # On récupère le client mongodb
+        self.db_name = self.client["tpmixte"] # On récupère la base de données du tp
+        self.collection = self.db_name["times"] # On récupère la collection times
+        self.db = list(self.collection.find()) #On transforme le find() en liste d'objet
 
     def GetShowtimeByDate(self, request, context):
         for showtime in self.db:
