@@ -1,17 +1,16 @@
 import json
-
 import grpc
 import requests
+import booking_pb2
+import booking_pb2_grpc
+
 from bson import ObjectId
 from flask import Flask, request, jsonify, make_response
 from pymongo import MongoClient
 
-import booking_pb2
-import booking_pb2_grpc
-
 app = Flask(__name__)
 
-# A VOIR POUR METTRE DANS UN .ENV ?
+# Variables
 PORT = 3004
 HOST = '0.0.0.0'
 BOOKING_SERVICE_URL = "localhost:3003"
@@ -41,11 +40,13 @@ class JSONEncoder(json.JSONEncoder):
 def custom_jsonify(data):
     return json.loads(JSONEncoder().encode(data))
 
+# Route to get the welcome page to the user service
 @app.route("/", methods=['GET'])
 def home():
     return "<h1 style='color:blue'>Welcome to the User service!</h1>"
 
 
+# Route to get all the users
 @app.route("/users", methods=['GET'])
 def get_users():
     json = custom_jsonify(users_db)
@@ -53,6 +54,7 @@ def get_users():
     return response
 
 
+# Route to post a new user with check on the id
 @app.route("/users", methods=['POST'])
 def add_user():
     req = request.get_json()
@@ -67,6 +69,7 @@ def add_user():
     return make_response(jsonify({"message": "user added"}, custom_jsonify(req)), 200)
 
 
+# Route to get information of a user via the id
 @app.route("/users/<userid>", methods=['GET'])
 def get_user_byid(userid):
     for user in users_db:
@@ -75,7 +78,7 @@ def get_user_byid(userid):
     return make_response(jsonify({'error': 'User not found', "id": userid}), 404)
 
 
-#Voir pour une meilleure gestion des erreurs
+# Route to modify a user via the id
 @app.route("/users/<userid>", methods=['PUT'])
 def update_user_byid(userid):
     req = request.get_json()
@@ -89,6 +92,7 @@ def update_user_byid(userid):
     return make_response(jsonify({'error': 'User not found', "id": userid}), 404)
 
 
+# Route to delete a user via his id
 @app.route("/users/<userid>", methods=['DELETE'])
 def del_user_byid(userid):
     for user in users_db:
@@ -101,7 +105,7 @@ def del_user_byid(userid):
     return res
 
 
-# Tous les users triés par leur dernière activité
+# Route to get all the users sorted by their last activity
 @app.route("/users/bylastactive", methods=['GET'])
 def get_user_bylastactive():
     sorted_users_bylastactive = sorted(users_db, key=lambda user: user.get("last_active", 0))
@@ -109,7 +113,7 @@ def get_user_bylastactive():
     return response
 
 
-# récupérer tous les bookings d'un user (lien avec booking)
+# Route to get all the bookings of the user
 @app.route("/users/<userid>/bookings", methods=['GET'])
 def get_user_bookings(userid):
     for user in users_db:
@@ -123,14 +127,13 @@ def get_user_bookings(userid):
                     bookings = [
                         {
                             "date": showtime.date,
-                            "movies": list(showtime.movies)  # Convertir RepeatedScalarContainer en liste
+                            "movies": list(showtime.movies)
                         }
                         for showtime in response.dates
                     ]
                     return make_response(jsonify({"userid": response.userid, "bookings": bookings}), 200)
 
             except grpc.RpcError as e:
-                # Gérez les erreurs gRPC
                 return make_response(jsonify({
                     "error": "Error contacting Booking service",
                     "details": e.details()
@@ -138,9 +141,8 @@ def get_user_bookings(userid):
     return
 
 
-# Récupérer les informations de films via leur id en graphQL
+# Get the films information via their id, graphql
 def fetch_movie_details(movie_ids):
-    """ Fonction pour récupérer les informations des films via GraphQL (un ID à la fois) """
     query = """
     query Movie_by_id($id: String!) {
         movie_by_id(_id: $id) {
@@ -156,13 +158,12 @@ def fetch_movie_details(movie_ids):
 
     for movie_id in movie_ids:
         variables = {
-            "id": movie_id  # Un seul ID à la fois
+            "id": movie_id
         }
 
         response = requests.post(MOVIE_SERVICE_URL, json={'query': query, 'variables': variables})
 
         if response.status_code == 200:
-            # Ajoutez les données du film récupérées à la liste des résultats
             movie_details.append(response.json()["data"]["movie_by_id"])
         else:
             raise Exception(f"GraphQL query failed for ID {movie_id}: {response.text}")
@@ -170,7 +171,7 @@ def fetch_movie_details(movie_ids):
     return movie_details
 
 
-# même chose, mais en récupérant aussi les infos des films (lien avec booking et movie)
+# Route to get all the bookings of the user with the films information
 @app.route("/users/<userid>/bookings/movies", methods=['GET'])
 def get_user_bookings_movies(userid):
     for user in users_db:
@@ -191,7 +192,6 @@ def get_user_bookings_movies(userid):
                             "movies": movies_list
                         })
 
-                    # Récupération des informations sur les films
                     movie_details = fetch_movie_details(movie_ids)
 
                     for booking in bookings:
