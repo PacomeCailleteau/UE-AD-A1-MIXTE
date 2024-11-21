@@ -6,6 +6,11 @@
 - Marina CARBONE
 ---
 
+## Explication du projet
+Ce projet mixte offre les microservices showtime et booking en gRPC, le microservice movie en GraphQL et le microservice user en REST.  
+Le microservice user offre les mêmes fonctionnalités que celui présent dans le TP REST.  
+Pour la partie bonus, nous avons choisi de rajouter une base de données mongodb en local et de faire un frontend en React.  
+
 ### Notre projet offre les microservices suivants :
 - Showtime sur ce [lien](http://localhost:3002).
 - Booking sur ce [lien](http://localhost:3003).
