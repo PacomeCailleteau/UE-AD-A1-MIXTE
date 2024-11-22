@@ -47,6 +47,7 @@ def update_movie_rate(_, info, _id, _rate):
             break
 
     if updated_movie:
+        # update du film pour la base de données mongodb
         movies_collection.update_one({"id": _id}, {"$set": {"rating": _rate}})
         return updated_movie
     else:
@@ -54,6 +55,7 @@ def update_movie_rate(_, info, _id, _rate):
 
 
 def resolve_actors_in_movie(film, info):
+    # on récupère les acteurs qui ont joué dans le film
     result = [actor for actor in actors_db if film['id'] in actor['films']]
     return result
 
@@ -69,6 +71,7 @@ def create_movie(_, info, _id, _title, _director, _rating):
     if _id in [movie['id'] for movie in movies_db]:
         raise ValueError("This id is already used.")
 
+    # on ajoute le film à la liste movies_db en plus de la base de données pour ne pas à refaire un find()
     movies_db.append(new_movie)
     movies_collection.insert_one(new_movie)
     return new_movie
@@ -87,11 +90,13 @@ def sort_movies_by_rating(_, info, order):
 
 
 def get_help(_, info):
+    # on sépare les requêtes des mutations
     help_info = {
         'Queries': [],
         'Mutations': []
     }
 
+    # on récupère les queries pour les ajouter à l'objet help_info
     for field_name, field in info.schema.query_type.fields.items():
         query_info = {
             'name': field_name,
@@ -108,6 +113,7 @@ def get_help(_, info):
         help_info['Queries'].append(query_info)
 
     if info.schema.mutation_type:
+        #on récupère les mutations pour les ajouter à l'objet help_info
         for field_name, field in info.schema.mutation_type.fields.items():
             mutation_info = {
                 'name': field_name,
