@@ -119,6 +119,7 @@ def get_user_bookings(userid):
     for user in users_db:
         if str(user["id"]) == str(userid):
             try:
+                # appelle du service booking en gRPC
                 with grpc.insecure_channel(BOOKING_SERVICE_URL) as channel:
                     stub = booking_pb2_grpc.BookingStub(channel)
                     request_grpc = booking_pb2.UserId(userid=userid)
@@ -161,6 +162,7 @@ def fetch_movie_details(movie_ids):
             "id": movie_id
         }
 
+        # appelle du service movie en GraphQL
         response = requests.post(MOVIE_SERVICE_URL, json={'query': query, 'variables': variables})
 
         if response.status_code == 200:
@@ -177,6 +179,7 @@ def get_user_bookings_movies(userid):
     for user in users_db:
         if str(user["id"]) == str(userid):
             try:
+                # appelle du service booking en gRPC
                 with grpc.insecure_channel(BOOKING_SERVICE_URL) as channel:
                     stub = booking_pb2_grpc.BookingStub(channel)
                     request_grpc = booking_pb2.UserId(userid=userid)
@@ -192,6 +195,8 @@ def get_user_bookings_movies(userid):
                             "movies": movies_list
                         })
 
+                    # la fonction fetch_movie_details permet de récupérer les informations des films en appelant le microservice movie
+                    # prend une liste d'id en paramètre et renvoie une liste de movie_details
                     movie_details = fetch_movie_details(movie_ids)
 
                     for booking in bookings:

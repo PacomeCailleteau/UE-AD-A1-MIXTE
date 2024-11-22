@@ -20,7 +20,7 @@ Pour la partie bonus, nous avons choisi de rajouter une base de données mongodb
 
 ## Base de données MongoDB
 ### Installation de MongoDB
-Suivre la [documentation](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/) d'installation de MongoDB en local sur Ubuntu. (Faire les 4 premiers points)
+Suivre la [documentation](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/) d'installation de MongoDB en local.
 
 ### Création de la base de données mongo local
 Se mettre à la racine du projet puis lancer les commandes suivantes :
@@ -57,3 +57,5 @@ Avant de lancer le script run.sh, il faut :
 
 Le script run.sh permet de lancer le front et les microservices en même temps. Pour le lancer, il suffit de taper la commande suivante :  
 `./run.sh`  
+Si vous rencontrez l'erreur ``$'\r': command not found``, c'est que le fichier run.sh n'est pas en mode unix. Pour le mettre en mode unix, il suffit de taper la commande suivante :
+`dos2unix run.sh`

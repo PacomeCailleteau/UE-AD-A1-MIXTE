@@ -126,6 +126,7 @@ def get_help(_, info):
 
 
 def delete_movie(_, info, _id):
+    # récupère le film à supprimer ou None si aucun film n'est trouvé
     movie_to_delete = next((movie for movie in movies_db if movie['id'] == _id), None)
 
     if not movie_to_delete:
